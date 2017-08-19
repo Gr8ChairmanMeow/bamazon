@@ -72,6 +72,7 @@ function buy(productObj) {
                     productObj.qty + " of " +
                     results[0].product_name + " (" +
                     results[0].department_name + ")");
+                console.log("Total cost: " + parseInt(productObj.qty)*parseInt(results[0].price))
                 setTimeout(startApp, 1200); //possible replace with new function when expanding options.
             }); //end query
         } else {

@@ -27,6 +27,7 @@ VALUES ("Red Sneakers","Shoes",25.00,100),
 ("Wizard Boy & the Crazy Adventure","Books",10.99,25),
 ("Smash'Em Bros Game Card","Electronics",16.00,45),
 ("Gray Jeans","Pants",35.00,60),
+("Zero Cool the Novel","Books",19.99,4),
 ("McBlender 4-Speed","Kitchen",40.00,45),
 ("GameThing DS","Electronics",90.00,100);
 
