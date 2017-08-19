@@ -17,7 +17,9 @@
   },
   "homepage": "https://github.com/Gr8ChairmanMeow/flashCard#readme",
   "dependencies": {
-    "inquirer": "^3.2.1",
+    "columnify": "^1.5.4",
+    "inquirer": "^3.2.2",
+    "mysql": "^2.14.1",
     "node-spotify-api": "^1.0.6",
     "request": "^2.81.0",
     "twitter": "^1.7.1"
