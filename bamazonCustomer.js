@@ -1,25 +1,10 @@
 var inquirer = require("inquirer");
 var mysql = require("mysql");
 var columnify = require("columnify");
-/*var connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '#Dubnium105#',
-    database: 'bamazondb'
-});
-
-connection.connect(function(err) {
-    if (err) {
-        console.log("error connecting: " + err.stack);
-        return;
-    }
-    console.log("connected as id " + connection.threadId);
-    startApp();
-});*/
 var self = module.exports = {
 
     startApp: function(connection) {
-        //console.log("BAMAZON");
+
         connection.query("SELECT * FROM bamventory", function(error, results, fields) {
             if (error) throw error;
             //console.log(results);
@@ -36,9 +21,9 @@ var self = module.exports = {
                 }
             ]).then(function(response) {
                 self.buy(response, connection);
-            }); //end inquirer
-        }); //
-    },
+            }); //end then
+        }); //end SELECT query
+    }, //end method
 
     quit: function(connection) {
         console.log("Goodbye...")
@@ -58,8 +43,8 @@ var self = module.exports = {
             } else {
                 setTimeout(function() { self.quit(connection) }, 1000);
             }
-        });
-    },
+        }); //end then
+    }, //end method
 
     buy: function(productObj, connection) {
         //console.log(productObj.id);
@@ -82,12 +67,11 @@ var self = module.exports = {
                         results[0].department_name + ")");
                     console.log("Total cost: " + parseInt(productObj.qty) * parseFloat(results[0].price))
                     setTimeout(function() { self.continueThis(connection) }, 1200); //possible replace with new function when expanding options.
-                }); //end query
+                }); //end UPDATE query
             } else {
                 console.log("Not enough inventory!");
                 self.continueThis(connection);
-            }
-            //console.log(columnify(results, { columns: ['item_id', 'product_name', 'department_name', 'price', 'qty'] }));
-        }); //end query
-    }
-};
+            } //end else
+        }); //end SELECT query
+    } //end method
+}; //end self/export object

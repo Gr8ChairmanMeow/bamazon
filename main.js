@@ -15,10 +15,22 @@ connection.connect(function(err) {
         console.log("error connecting: " + err.stack);
         return;
     }
-    console.log("connected as id " + connection.threadId);
-    //bamManager.startApp(connection);
-    bamCustomer.startApp(connection);
+    console.log("Welcome to Bamazon! Your one stop node.js shop. " + connection.threadId);
+    
+    inquirer.prompt([{
+            type: 'list',
+            message: 'Are you a: ',
+            choices: ['customer', 'manager'],
+            name: 'choice'
+        }
+    ]).then(function(response) {
+        switch (response.choice) {
+            case 'customer':
+                bamCustomer.startApp(connection);
+                break;
+            case 'manager':
+                bamManager.startApp(connection);
+                break;
+        }
+    });
 });
-
-
-//inquirer.prompt([{},{}]).then(function(response){});

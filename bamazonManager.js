@@ -1,22 +1,6 @@
 var inquirer = require("inquirer");
 var mysql = require("mysql");
 var columnify = require("columnify");
-/*
-var connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '#Dubnium105#',
-    database: 'bamazondb'
-});
-
-connection.connect(function(err) {
-    if (err) {
-        console.log("error connecting: " + err.stack);
-        return;
-    }
-    console.log("connected as id " + connection.threadId);
-    startApp();
-});*/
 var self = module.exports = {
     startApp: function(connection) {
 
@@ -59,44 +43,70 @@ var self = module.exports = {
                     self.addBamventory(connection);
                     break;
                 case 'Add New Product':
-                    inquirer.prompt([{
-                            type: 'input',
-                            name: 'product_name',
-                            message: 'Enter the product name: ',
-                        },
-                        {
-                            type: 'input',
-                            name: 'department_name',
-                            message: 'Enter the department name: ',
-                        },
-                        {
-                            type: 'input',
-                            name: 'price',
-                            message: 'Enter the product price: ',
-                        },
-                        {
-                            type: 'input',
-                            name: 'qty',
-                            message: 'Enter the product qty: ',
-                        }
-                    ]).then(function(response) {
-                        self.addProduct(response, connection);
-                    });
+                    self.createSKU(connection);
                     break;
+            }//end switch
+
+        });//end then
+
+    },//end method
+
+    createSKU: function(connection) {
+        inquirer.prompt([{
+                type: 'input',
+                name: 'product_name',
+                message: 'Enter the product name: ',
+            },
+            {
+                type: 'input',
+                name: 'department_name',
+                message: 'Enter the department name: ',
+            },
+            {
+                type: 'input',
+                name: 'price',
+                message: 'Enter the product price: ',
+            },
+            {
+                type: 'input',
+                name: 'qty',
+                message: 'Enter the product qty: ',
             }
-
-        });
-
-    },
+        ]).then(function(response) {
+            self.addProduct(response, connection);
+        });//end then
+    },//end method
 
     addProduct: function(productObj, connection) {
         connection.query("INSERT INTO ?? SET ?", ["bamventory", productObj], function(error, results, fields) {
-
             if (error) throw error;
-            setTimeout(function() { self.continueThis(connection) }, 1000);
+            connection.query("SELECT * FROM bamventory WHERE ?", { product_name: productObj.product_name }, function(error, results, fields) {
+                console.log("The following product will be created.");
+                console.log("SKU: " + results[0].item_id +
+                    " | name: " + results[0].product_name +
+                    " | department: " + results[0].department_name +
+                    " | price: " + results[0].price +
+                    " | inventory: " + results[0].qty);
+                inquirer.prompt([{
+                    type: 'list',
+                    choices: ['yes', 'no'],
+                    message: "Is this correct?",
+                    name: 'yesNo'
+                }]).then(function(response) {
 
-        });
-    },
+                    if (response.yesNo === "yes") {
+                        console.log("Created!");
+                        setTimeout(function() { self.continueThis(connection) }, 1000);
+                    } else {
+                        console.log("Deleting...");
+                        connection.query("DELETE FROM bamventory WHERE item_id = ?", [results[0].item_id], function(error, results, fields) {
+                            setTimeout(function() { self.createSKU(connection) }, 1000);
+                        });//end DELETE query
+                    }//end else
+                });//end then
+            });//end SELECT query
+        });//end INSERT query
+    },//end method
 
     addBamventory: function(connection) {
         connection.query("SELECT * FROM bamventory", function(error, results, fields) {
@@ -115,9 +125,9 @@ var self = module.exports = {
                 }
             ]).then(function(response) {
                 self.updateBam(response, connection);
-            }); //end inquirer
-        });
-    },
+            });//end then
+        });//end query
+    },//end method
 
     quit: function(connection) {
         console.log("Goodbye...")
@@ -137,8 +147,8 @@ var self = module.exports = {
             } else {
                 setTimeout(function() { self.quit(connection) }, 1000);
             }
-        });
-    },
+        });//end then
+    },//end method
 
     updateBam: function(productObj, connection) {
         //console.log(productObj.id);
@@ -148,8 +158,6 @@ var self = module.exports = {
         //console.log(productID);
         connection.query("SELECT * FROM bamventory WHERE ?", productID, function(error, results, fields) {
             if (error) throw error;
-            //add if statment to update selected item qty IF results[0].qty - productObj.qty > -1;
-            //console.log(results[0].qty - productObj.qty);
             var check = parseInt(results[0].qty) + parseFloat(productObj.qty);
             //console.log(check)
             connection.query("UPDATE bamventory SET qty = ? WHERE ?", [check, productID], function(error, res, fields) { //works!
@@ -160,8 +168,7 @@ var self = module.exports = {
                     results[0].product_name + " (" +
                     results[0].department_name + ")");
                 setTimeout(function() { self.continueThis(connection) }, 1200); //possible replace with new function when expanding options.
-            }); //end query
-            //console.log(columnify(results, { columns: ['item_id', 'product_name', 'department_name', 'price', 'qty'] }));
-        }); //end query
-    }
-};
+            }); //end UPDATE query
+        }); //end SELECT query
+    }//end method
+};//end self/export object

@@ -32,3 +32,5 @@ VALUES ("Red Sneakers","Shoes",25.00,100),
 ("GameThing DS","Electronics",90.00,100);
 
 SELECT * FROM bamventory;
+
+DELETE FROM bamventory WHERE item_id = 22;
