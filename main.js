@@ -1,6 +1,7 @@
 var inquirer = require("inquirer");
 var mysql = require("mysql");
 var columnify = require("columnify");
+var bamSuper = require("./bamSuper")
 var bamManager = require("./bamazonManager");
 var bamCustomer = require("./bamazonCustomer");
 var connection = mysql.createConnection({
@@ -16,11 +17,11 @@ connection.connect(function(err) {
         return;
     }
     console.log("Welcome to Bamazon! Your one stop node.js shop. " + connection.threadId);
-    
+
     inquirer.prompt([{
             type: 'list',
             message: 'Are you a: ',
-            choices: ['customer', 'manager'],
+            choices: ['customer', 'manager','supervisor'],
             name: 'choice'
         }
     ]).then(function(response) {
@@ -30,6 +31,9 @@ connection.connect(function(err) {
                 break;
             case 'manager':
                 bamManager.startApp(connection);
+                break;
+            case 'supervisor':
+                bamSuper.startApp(connection);
                 break;
         }
     });

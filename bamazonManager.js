@@ -17,7 +17,7 @@ var self = module.exports = {
 
         }]).then(function(response) {
 
-            console.log(response);
+           // console.log(response);
             switch (response.choice) {
                 case 'View Products for Sale':
                     connection.query("SELECT * FROM bamventory", function(error, results, fields) {
@@ -43,24 +43,40 @@ var self = module.exports = {
                     self.addBamventory(connection);
                     break;
                 case 'Add New Product':
-                    self.createSKU(connection);
+                    connection.query("SELECT ?? FROM ??",["department_name","bampartments"],function(error,results,fields){
+                        var departmentsArr = [];
+                        for (var i = 0; i < results.length; i++) {
+                            departmentsArr.push(results[i].department_name);
+                        }
+                        //console.log(departmentsArr);
+                        self.createSKU(connection,departmentsArr);
+                    });
                     break;
-            }//end switch
+            } //end switch
 
-        });//end then
+        }); //end then
 
-    },//end method
+    }, //end method
 
-    createSKU: function(connection) {
+/*Function to query all unique departments from bamventory and return item_count per department
+    connection.query("SELECT DISTINCT department_name,COUNT(department_name) AS item_count FROM ??" + 
+        "GROUP BY department_name", ["bamventory"], function(error, results, fields) {
+        console.log(results);
+        //self.continueThis(connection);
+    });
+*/
+
+    createSKU: function(connection,departments) {
         inquirer.prompt([{
                 type: 'input',
                 name: 'product_name',
                 message: 'Enter the product name: ',
             },
             {
-                type: 'input',
+                type: 'list',
                 name: 'department_name',
-                message: 'Enter the department name: ',
+                choices: departments,
+                message: 'Select the department: ',
             },
             {
                 type: 'input',
@@ -74,8 +90,8 @@ var self = module.exports = {
             }
         ]).then(function(response) {
             self.addProduct(response, connection);
-        });//end then
-    },//end method
+        }); //end then
+    }, //end method
 
     addProduct: function(productObj, connection) {
         connection.query("INSERT INTO ?? SET ?", ["bamventory", productObj], function(error, results, fields) {
@@ -101,12 +117,12 @@ var self = module.exports = {
                         console.log("Deleting...");
                         connection.query("DELETE FROM bamventory WHERE item_id = ?", [results[0].item_id], function(error, results, fields) {
                             setTimeout(function() { self.createSKU(connection) }, 1000);
-                        });//end DELETE query
-                    }//end else
-                });//end then
-            });//end SELECT query
-        });//end INSERT query
-    },//end method
+                        }); //end DELETE query
+                    } //end else
+                }); //end then
+            }); //end SELECT query
+        }); //end INSERT query
+    }, //end method
 
     addBamventory: function(connection) {
         connection.query("SELECT * FROM bamventory", function(error, results, fields) {
@@ -125,9 +141,9 @@ var self = module.exports = {
                 }
             ]).then(function(response) {
                 self.updateBam(response, connection);
-            });//end then
-        });//end query
-    },//end method
+            }); //end then
+        }); //end query
+    }, //end method
 
     quit: function(connection) {
         console.log("Goodbye...")
@@ -147,8 +163,8 @@ var self = module.exports = {
             } else {
                 setTimeout(function() { self.quit(connection) }, 1000);
             }
-        });//end then
-    },//end method
+        }); //end then
+    }, //end method
 
     updateBam: function(productObj, connection) {
         //console.log(productObj.id);
@@ -167,8 +183,8 @@ var self = module.exports = {
                     productObj.qty + " of " +
                     results[0].product_name + " (" +
                     results[0].department_name + ")");
-                setTimeout(function() { self.continueThis(connection) }, 1200); //possible replace with new function when expanding options.
+                setTimeout(function() { self.continueThis(connection) }, 1200);
             }); //end UPDATE query
         }); //end SELECT query
-    }//end method
-};//end self/export object
+    } //end method
+}; //end self/export object
