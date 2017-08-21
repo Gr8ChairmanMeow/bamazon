@@ -8,7 +8,7 @@ var self = module.exports = {
         connection.query("SELECT * FROM bamventory", function(error, results, fields) {
             if (error) throw error;
             //console.log(results);
-            console.log(columnify(results, { columns: ['item_id', 'product_name', 'department_name', 'price', 'qty'] }));
+            console.log(columnify(results, { columns: ['item_id', 'product_name', 'department_name', 'price', 'qty','product_sales'] }));
             inquirer.prompt([{
                     type: 'input',
                     message: 'Input the ID of the product your would like to purchase: ',
@@ -58,14 +58,18 @@ var self = module.exports = {
             //console.log(results[0].qty - productObj.qty);
             var check = results[0].qty - productObj.qty;
             if (check > -1) {
-                connection.query("UPDATE bamventory SET qty = ? WHERE ?", [check, productID], function(error, res, fields) { //works!
+                var totalSale = parseInt(productObj.qty) * parseFloat(results[0].price);
+                console.log(check);
+                console.log(totalSale);
+                connection.query("UPDATE bamventory SET qty = ?, ? WHERE ?", [check,{product_sales:results[0].product_sales+totalSale},productID], function(error, res, fields) { //works!
                     if (error) throw error;
+
                     console.log("Transaction complete!");
                     console.log("You have purchased " +
                         productObj.qty + " of " +
                         results[0].product_name + " (" +
                         results[0].department_name + ")");
-                    console.log("Total cost: " + parseInt(productObj.qty) * parseFloat(results[0].price))
+                    console.log("Total cost: " + totalSale)
                     setTimeout(function() { self.continueThis(connection) }, 1200); //possible replace with new function when expanding options.
                 }); //end UPDATE query
             } else {

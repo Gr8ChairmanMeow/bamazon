@@ -1,6 +1,23 @@
 CREATE DATABASE bamazonDB;
 USE bamazonDB;
 
+CREATE TABLE bampartments(
+	department_id INTEGER(20) AUTO_INCREMENT NOT NULL,
+    department_name VARCHAR(50) NOT NULL,
+    over_head_costs DECIMAL(12,3) NOT NULL,
+    PRIMARY KEY(department_id)
+);
+
+INSERT INTO bampartments(department_name,over_head_costs)
+VALUES ("Books",2000),
+("Electronics",10000),
+("Entertainment",3000),
+("Kitchen",3000),
+("Movies/Shows",1000),
+("Pants",2000),
+("Shirts",1000),
+("Shoes",5000);
+
 CREATE TABLE bamventory(
 	item_id INTEGER(20) AUTO_INCREMENT NOT NULL,
     product_name VARCHAR(50) NOT NULL,
@@ -29,8 +46,10 @@ VALUES ("Red Sneakers","Shoes",25.00,100),
 ("Gray Jeans","Pants",35.00,60),
 ("Zero Cool the Novel","Books",19.99,4),
 ("McBlender 4-Speed","Kitchen",40.00,45),
-("GameThing DS","Electronics",90.00,100);
+("GameThing DS","Electronics",90.00,100),
+("Pink Shoes","Shoes",25.25,14),
+("Monsters & Quests Starter Set","Entertainment",50.45,150),
+("Monsters & Quests Expansion Pack","Entertainment",29.99,150);
 
-SELECT * FROM bamventory;
-
-DELETE FROM bamventory WHERE item_id = 22;
+ALTER TABLE bamventory
+ADD product_sales DECIMAL(6,2) NOT NULL;
