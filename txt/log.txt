@@ -1,0 +1,25 @@
+bamazon-shopping
+supervisor
+--------------------
+View Product Sales by Department
+DEPARTMENT_ID DEPARTMENT_NAME OVER_HEAD_COSTS TOTAL_SALES PROFIT  
+1             Books           2000            133.08      -1866.92
+2             Electronics     10000           80          -9920   
+3             Entertainment   3000            1591.14     -1408.86
+4             Kitchen         3000            250         -2750   
+5             Movies/Shows    1000            257.99      -742.01 
+6             Pants           2000            525         -1475   
+7             Shirts          1000            210         -790    
+8             Shoes           5000            240         -4760   
+Loading Liri...
+bamazon-shopping
+bamazon-shopping
+manager
+--------------------
+View Products by Department
+Loading Liri...
+bamazon-shopping
+manager
+--------------------
+View Products for Sale
+Loading Liri...

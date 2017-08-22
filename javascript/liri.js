@@ -25,12 +25,7 @@ var twitterParams = {
     q: 'nytimes',
     count: 20
 };
-var connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '#Dubnium105#',
-    database: 'bamazondb'
-});
+
 var gamesArr = [BasicCard, ClozeCard];
 var basicArr = [
     ["Who was the first president of the United States?", "George Washington"],
@@ -130,8 +125,8 @@ function doWhatSays() {
                 gameTime();
                 break;
             case "bamazon-shopping":
-            	bamazonNow();
-            	break;
+                bamazonNow();
+                break;
             case "my-tweets":
                 myTweets();
                 break;
@@ -469,6 +464,12 @@ function gameTime() {
 }; //end gameTime();
 
 function bamazonNow() {
+    var connection = mysql.createConnection({
+        host: 'localhost',
+        user: 'root',
+        password: '#Dubnium105#',
+        database: 'bamazondb'
+    });
     connection.connect(function(err) {
         if (err) {
             console.log("error connecting: " + err.stack);
@@ -482,7 +483,7 @@ function bamazonNow() {
             choices: ['customer', 'manager', 'supervisor'],
             name: 'choice'
         }]).then(function(response) {
-            writeStream([response.choice,"--------------------"]);
+            writeStream([response.choice, "--------------------"]);
             switch (response.choice) {
                 case 'customer':
                     bamCustomer.startApp(connection);
@@ -581,3 +582,7 @@ function startApp(callback) {
     }); //end prompt call
 }; //end startPrompt function
 startApp();
+
+exports.startApp = function() {
+    startApp();
+}

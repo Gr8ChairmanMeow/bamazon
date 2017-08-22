@@ -2,7 +2,7 @@ var inquirer = require("inquirer");
 var mysql = require("mysql");
 var columnify = require("columnify");
 var functions = require("./functions");
-
+var liri = require("./liri");
 var self = module.exports = {
     startApp: function(connection) {
 
@@ -163,12 +163,17 @@ var self = module.exports = {
         inquirer.prompt([{
             type: 'list',
             message: 'Anything else I can do for you?',
-            choices: ['Yes', 'No'],
+            choices: ['Yes', 'No','Return to Liri'],
             name: "yesNo"
         }]).then(function(response) {
             if (response.yesNo === "Yes") {
                 console.log("Returning to main menu...")
                 setTimeout(function() { self.startApp(connection) }, 1200);
+            } else if (response.yesNo === 'Return to Liri') {
+                connection.end();
+                console.log("Loading Liri...");
+                functions.appendFile("Loading Liri...");
+                setTimeout(liri.startApp,1000);
             } else {
                 setTimeout(function() { self.quit(connection) }, 1000);
             }
