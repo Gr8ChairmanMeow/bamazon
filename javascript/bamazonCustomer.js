@@ -13,12 +13,26 @@ var self = module.exports = {
             inquirer.prompt([{
                     type: 'input',
                     message: 'Input the ID of the product your would like to purchase: ',
-                    name: 'id'
+                    name: 'id',
+                    validate: function(input) {
+                        if (isNaN(input)) {
+                            return false;
+                        } else {
+                            return true;
+                        }
+                    }
                 },
                 {
                     type: 'input',
                     message: 'Enter the qty you would like to purchase: ',
-                    name: 'qty'
+                    name: 'qty',
+                    validate: function(input) {
+                        if (isNaN(input)) {
+                            return false;
+                        } else {
+                            return true;
+                        }
+                    }
                 }
             ]).then(function(response) {
                 functions.appendFile(response.choice); //need to remove this, returns undefined

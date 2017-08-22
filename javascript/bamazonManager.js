@@ -109,17 +109,38 @@ var self = module.exports = {
                 type: 'input',
                 name: 'price',
                 message: 'Enter the product price: ',
+                validate: function(input) {
+                    if (isNaN(input)) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
             },
             {
                 type: 'input',
                 name: 'qty',
                 message: 'Enter the product qty: ',
+                validate: function(input) {
+                    if (isNaN(input)) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
             },
             {
                 type: 'input',
                 name: 'product_sales',
                 message: 'Current Sales: ',
-                default: 0.00
+                default: 0.00,
+                validate: function(input) {
+                    if (isNaN(input)) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
             }
         ]).then(function(response) {
             functions.appendFile(response.choice);
@@ -154,9 +175,13 @@ var self = module.exports = {
                     functions.appendFile(response.choice);
                     if (response.yesNo === "yes") {
                         console.log("Created!");
+                        functions.appendFile("Created!");
+                        functions.appendFile("------------------------------");
                         setTimeout(function() { self.continueThis(connection) }, 1000);
                     } else {
                         console.log("Deleting...");
+                        functions.appendFile("Deleting...");
+                        functions.appendFile("------------------------------");
                         connection.query("DELETE FROM bamventory WHERE item_id = ?", [results[0].item_id], function(error, results, fields) {
                             setTimeout(function() { self.createSKU(connection) }, 1000);
                         }); //end DELETE query
@@ -177,15 +202,30 @@ var self = module.exports = {
             inquirer.prompt([{
                     type: 'input',
                     message: 'Input the ID of the product your would like to add inventory to: ',
-                    name: 'id'
+                    name: 'id',
+                    validate: function(input) {
+                        if (isNaN(input)) {
+                            return false;
+                        } else {
+                            return true;
+                        }
+                    }
                 },
                 {
                     type: 'input',
                     message: 'Enter the inventory qty you would like to add: ',
-                    name: 'qty'
+                    name: 'qty',
+                    validate: function(input) {
+                        if (isNaN(input)) {
+                            return false;
+                        } else {
+                            return true;
+                        }
+                    }
                 }
             ]).then(function(response) {
-                functions.appendFile(response.choice);
+                functions.appendFile("Adding " + response.qty + " to product_id: " + response.id);
+                functions.appendFile("--------------------------------------------------------");
                 self.updateBam(response, connection);
             }); //end then
         }); //end query
@@ -231,10 +271,12 @@ var self = module.exports = {
                     results[0].product_name + " (" +
                     results[0].department_name + ")");
 
-                functions.writeStream(["Update complete!", "You have added " +
+                functions.writeStream(["Update complete!",
+                    "You have added " +
                     productObj.qty + " of " +
                     results[0].product_name + " (" +
-                    results[0].department_name + ")"
+                    results[0].department_name + ")",
+                    "----------------------------------"
                 ]);
 
                 setTimeout(function() { self.continueThis(connection) }, 1200);

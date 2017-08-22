@@ -51,9 +51,11 @@ var self = module.exports = {
                 message: "Which department would you like to view?",
                 name: "choice"
             }]).then(function(response) {
+                functions.appendFile(response.choice);
                 connection.query("SELECT * FROM ?? WHERE ?", ["bamventory",{department_name:response.choice}], function(error, results, fields) {
                     if (error) throw error;
                     console.log(columnify(results, { columns: ['item_id', 'product_name', 'department_name', 'price', 'qty'] }));
+                    functions.appendFile(columnify(results, { columns: ['item_id', 'product_name', 'department_name', 'price', 'qty'] }));
                     self.continueThis(connection);
                 });
             });
@@ -69,6 +71,7 @@ var self = module.exports = {
             function(error, results, fields) {
 
                 console.log(columnify(results, { columns: ['department_id', 'department_name', 'item_count'] }));
+                functions.appendFile(columnify(results, { columns: ['department_id', 'department_name', 'item_count'] }));
 
                 self.continueThis(connection);
             });
@@ -99,8 +102,10 @@ var self = module.exports = {
                 console.log("Department: " + results[0].department_name +
                     " | Overhead Costs: " + results[0].over_head_costs);
 
-                functions.writeStream(["The following department will be created.", "Department: " + results[0].department_name +
-                    " | Overhead Costs: " + results[0].over_head_costs
+                functions.writeStream(["The following department will be created.",
+                    "Department: " + results[0].department_name +
+                    " | Overhead Costs: " + results[0].over_head_costs,
+                    "--------------------------------------------------------"
                 ]);
 
                 inquirer.prompt([{
@@ -112,9 +117,11 @@ var self = module.exports = {
                     functions.appendFile(response.choice);
                     if (response.yesNo === "yes") {
                         console.log("Created!");
+                        functions.appendFile("Created!");
                         setTimeout(function() { self.continueThis(connection) }, 1000);
                     } else {
                         console.log("Deleting...");
+                        functions.appendFile("Deleting...");
                         connection.query("DELETE FROM bampartments WHERE ?", { department_id: results[0].department_id }, function(error, results, fields) {
                             setTimeout(function() { self.createDept(connection) }, 1000);
                         }); //end DELETE query
