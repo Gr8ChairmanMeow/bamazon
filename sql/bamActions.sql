@@ -4,11 +4,6 @@ SELECT * FROM bamventory;
 
 SELECT * FROM bampartments;
 
-SELECT DISTINCT bampartments.department_id,bampartments.department_name,COUNT(bamventory.department_name) AS item_count
-FROM bamventory INNER JOIN bampartments
-ON bampartments.department_name=bamventory.department_name
-GROUP BY department_name;
-
 SELECT DISTINCT department_name,COUNT(department_name) AS item_count
 FROM bamventory GROUP BY department_name;
 
@@ -31,5 +26,5 @@ SELECT bampartments.department_id,bampartments.department_name,bampartments.over
 FROM bampartments INNER JOIN bamventory
 ON bampartments.department_name=bamventory.department_name;
 
-DELETE FROM bamventory WHERE item_id = 23;
+DELETE FROM bamventory WHERE item_id = 24;
 DELETE FROM bampartments WHERE department_id > 8;

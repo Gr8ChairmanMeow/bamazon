@@ -1,6 +1,8 @@
 var inquirer = require("inquirer");
 var mysql = require("mysql");
 var columnify = require("columnify");
+var functions = require("./functions");
+
 var self = module.exports = {
     startApp: function(connection) {
 
@@ -9,14 +11,23 @@ var self = module.exports = {
             type: 'list',
             message: 'Hello, what can I do for you?',
             choices: ['View Product Sales by Department',
+                'View Item Count by Department',
+                'View Products by Department',
                 'Create New Department'
             ],
             name: 'choice',
 
         }]).then(function(response) {
+            functions.appendFile(response.choice);
             switch (response.choice) {
                 case 'View Product Sales by Department':
                     self.sales(connection);
+                    break;
+                case 'View Item Count by Department':
+                    self.countDept(connection);
+                    break;
+                case 'View Products by Department':
+                    self.productDept(connection);
                     break;
                 case 'Create New Department':
                     self.createDept(connection);
@@ -27,13 +38,41 @@ var self = module.exports = {
 
     }, //end method
 
-    /*Function to query all unique departments from bamventory and return item_count per department
-        connection.query("SELECT DISTINCT department_name,COUNT(department_name) AS item_count FROM ??" + 
-            "GROUP BY department_name", ["bamventory"], function(error, results, fields) {
-            console.log(results);
-            //self.continueThis(connection);
+    productDept: function(connection) {
+        connection.query("SELECT ?? FROM ??", ["department_name", "bampartments"], function(error, results, fields) {
+            if (error) throw error;
+            var departmentsArr = [];
+            for (var i = 0; i < results.length; i++) {
+                departmentsArr.push(results[i].department_name);
+            }
+            inquirer.prompt([{
+                type: 'list',
+                choices: departmentsArr,
+                message: "Which department would you like to view?",
+                name: "choice"
+            }]).then(function(response) {
+                connection.query("SELECT * FROM ?? WHERE ?", ["bamventory",{department_name:response.choice}], function(error, results, fields) {
+                    if (error) throw error;
+                    console.log(columnify(results, { columns: ['item_id', 'product_name', 'department_name', 'price', 'qty'] }));
+                    self.continueThis(connection);
+                });
+            });
         });
-    */
+    },
+
+    countDept: function(connection) {
+        connection.query("SELECT DISTINCT bampartments.department_id, bampartments.department_name," +
+            "COUNT(bamventory.department_name) AS item_count FROM ?? " +
+            "INNER JOIN bampartments " +
+            "ON bampartments.department_name=bamventory.department_name " +
+            "GROUP BY department_name", ["bamventory"],
+            function(error, results, fields) {
+
+                console.log(columnify(results, { columns: ['department_id', 'department_name', 'item_count'] }));
+
+                self.continueThis(connection);
+            });
+    },
 
     createDept: function(connection) {
         inquirer.prompt([{
@@ -47,6 +86,7 @@ var self = module.exports = {
                 message: 'Enter overhead costs for new department: ',
             }
         ]).then(function(response) {
+            functions.appendFile(response.choice);
             self.addDept(response, connection);
         }); //end then
     },
@@ -58,15 +98,20 @@ var self = module.exports = {
                 console.log("The following department will be created.");
                 console.log("Department: " + results[0].department_name +
                     " | Overhead Costs: " + results[0].over_head_costs);
+
+                functions.writeStream(["The following department will be created.", "Department: " + results[0].department_name +
+                    " | Overhead Costs: " + results[0].over_head_costs
+                ]);
+
                 inquirer.prompt([{
                     type: 'list',
                     choices: ['yes', 'no'],
                     message: "Is this correct?",
                     name: 'yesNo'
                 }]).then(function(response) {
-
+                    functions.appendFile(response.choice);
                     if (response.yesNo === "yes") {
-                        console.log("Created!"); +
+                        console.log("Created!");
                         setTimeout(function() { self.continueThis(connection) }, 1000);
                     } else {
                         console.log("Deleting...");
@@ -78,6 +123,7 @@ var self = module.exports = {
             }); //end SELECT query
         }); //end INSERT query
     },
+
 
     /*
     "SELECT bampartments.department_id,bampartments.department_name,bampartments.over_head_costs," +
@@ -95,12 +141,14 @@ var self = module.exports = {
                 if (error) throw error;
                 //console.log(results);
                 console.log(columnify(results, { columns: ['department_id', 'department_name', 'over_head_costs', 'total_sales', 'profit'] }));
+                functions.appendFile(columnify(results, { columns: ['department_id', 'department_name', 'over_head_costs', 'total_sales', 'profit'] }));
                 setTimeout(function() { self.continueThis(connection) }, 1000);
             });
     },
 
     quit: function(connection) {
-        console.log("Goodbye...")
+        console.log("Goodbye...");
+        functions.writeFile("");
         connection.end();
     },
 

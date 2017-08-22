@@ -1,6 +1,7 @@
 var inquirer = require("inquirer");
 var mysql = require("mysql");
 var columnify = require("columnify");
+var functions = require("./functions");
 var self = module.exports = {
 
     startApp: function(connection) {
@@ -8,7 +9,7 @@ var self = module.exports = {
         connection.query("SELECT * FROM bamventory", function(error, results, fields) {
             if (error) throw error;
             //console.log(results);
-            console.log(columnify(results, { columns: ['item_id', 'product_name', 'department_name', 'price', 'qty','product_sales'] }));
+            console.log(columnify(results, { columns: ['item_id', 'product_name', 'department_name', 'price', 'qty', 'product_sales'] }));
             inquirer.prompt([{
                     type: 'input',
                     message: 'Input the ID of the product your would like to purchase: ',
@@ -20,13 +21,15 @@ var self = module.exports = {
                     name: 'qty'
                 }
             ]).then(function(response) {
+                functions.appendFile(response.choice); //need to remove this, returns undefined
                 self.buy(response, connection);
             }); //end then
         }); //end SELECT query
     }, //end method
 
     quit: function(connection) {
-        console.log("Goodbye...")
+        console.log("Goodbye...");
+        functions.writeFile("");
         connection.end();
     },
 
@@ -59,9 +62,7 @@ var self = module.exports = {
             var check = results[0].qty - productObj.qty;
             if (check > -1) {
                 var totalSale = parseInt(productObj.qty) * parseFloat(results[0].price);
-                console.log(check);
-                console.log(totalSale);
-                connection.query("UPDATE bamventory SET qty = ?, ? WHERE ?", [check,{product_sales:results[0].product_sales+totalSale},productID], function(error, res, fields) { //works!
+                connection.query("UPDATE bamventory SET qty = ?, ? WHERE ?", [check, { product_sales: results[0].product_sales + totalSale }, productID], function(error, res, fields) { //works!
                     if (error) throw error;
 
                     console.log("Transaction complete!");
@@ -69,11 +70,19 @@ var self = module.exports = {
                         productObj.qty + " of " +
                         results[0].product_name + " (" +
                         results[0].department_name + ")");
-                    console.log("Total cost: " + totalSale)
+                    console.log("Total cost: " + totalSale);
+
+                    functions.writeStream(["Transaction complete!", "You have purchased " +
+                        productObj.qty + " of " +
+                        results[0].product_name + " (" +
+                        results[0].department_name + ")", "Total cost: " + totalSale
+                    ]);
+
                     setTimeout(function() { self.continueThis(connection) }, 1200); //possible replace with new function when expanding options.
                 }); //end UPDATE query
             } else {
                 console.log("Not enough inventory!");
+                functions.appendFile("Not enough inventory!");
                 self.continueThis(connection);
             } //end else
         }); //end SELECT query

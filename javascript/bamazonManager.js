@@ -1,6 +1,7 @@
 var inquirer = require("inquirer");
 var mysql = require("mysql");
 var columnify = require("columnify");
+var functions = require("./functions");
 var self = module.exports = {
     startApp: function(connection) {
 
@@ -10,15 +11,17 @@ var self = module.exports = {
             message: 'Hello, what can I do for you?',
             choices: ['View Products for Sale',
                 'View Low Inventory',
+                'View Products by Department',
                 'Add to Inventory',
                 'Add New Product'
             ],
             name: 'choice',
 
         }]).then(function(response) {
-
-           // console.log(response);
+            functions.appendFile(response.choice);
+            // console.log(response);
             switch (response.choice) {
+
                 case 'View Products for Sale':
                     connection.query("SELECT * FROM bamventory", function(error, results, fields) {
 
@@ -39,17 +42,20 @@ var self = module.exports = {
 
                     });
                     break;
+                case 'View Products by Department':
+                    self.productDept(connection);
+                    break;
                 case 'Add to Inventory':
                     self.addBamventory(connection);
                     break;
                 case 'Add New Product':
-                    connection.query("SELECT ?? FROM ??",["department_name","bampartments"],function(error,results,fields){
+                    connection.query("SELECT ?? FROM ??", ["department_name", "bampartments"], function(error, results, fields) {
                         var departmentsArr = [];
                         for (var i = 0; i < results.length; i++) {
                             departmentsArr.push(results[i].department_name);
                         }
                         //console.log(departmentsArr);
-                        self.createSKU(connection,departmentsArr);
+                        self.createSKU(connection, departmentsArr);
                     });
                     break;
             } //end switch
@@ -58,15 +64,36 @@ var self = module.exports = {
 
     }, //end method
 
-/*Function to query all unique departments from bamventory and return item_count per department
-    connection.query("SELECT DISTINCT department_name,COUNT(department_name) AS item_count FROM ??" + 
-        "GROUP BY department_name", ["bamventory"], function(error, results, fields) {
-        console.log(results);
-        //self.continueThis(connection);
-    });
-*/
+    /*Function to query all unique departments from bamventory and return item_count per department
+        connection.query("SELECT DISTINCT department_name,COUNT(department_name) AS item_count FROM ??" + 
+            "GROUP BY department_name", ["bamventory"], function(error, results, fields) {
+            console.log(results);
+            //self.continueThis(connection);
+        });
+    */
+    productDept: function(connection) {
+        connection.query("SELECT ?? FROM ??", ["department_name", "bampartments"], function(error, results, fields) {
+            if (error) throw error;
+            var departmentsArr = [];
+            for (var i = 0; i < results.length; i++) {
+                departmentsArr.push(results[i].department_name);
+            }
+            inquirer.prompt([{
+                type: 'list',
+                choices: departmentsArr,
+                message: "Which department would you like to view?",
+                name: "choice"
+            }]).then(function(response) {
+                connection.query("SELECT * FROM ?? WHERE ?", ["bamventory", { department_name: response.choice }], function(error, results, fields) {
+                    if (error) throw error;
+                    console.log(columnify(results, { columns: ['item_id', 'product_name', 'department_name', 'price', 'qty'] }));
+                    self.continueThis(connection);
+                });
+            });
+        });
+    },
 
-    createSKU: function(connection,departments) {
+    createSKU: function(connection, departments) {
         inquirer.prompt([{
                 type: 'input',
                 name: 'product_name',
@@ -87,8 +114,15 @@ var self = module.exports = {
                 type: 'input',
                 name: 'qty',
                 message: 'Enter the product qty: ',
+            },
+            {
+                type: 'input',
+                name: 'product_sales',
+                message: 'Current Sales: ',
+                default: 0.00
             }
         ]).then(function(response) {
+            functions.appendFile(response.choice);
             self.addProduct(response, connection);
         }); //end then
     }, //end method
@@ -103,13 +137,21 @@ var self = module.exports = {
                     " | department: " + results[0].department_name +
                     " | price: " + results[0].price +
                     " | inventory: " + results[0].qty);
+
+                functions.writeStream(["The following product will be created.", "SKU: " + results[0].item_id +
+                    " | name: " + results[0].product_name +
+                    " | department: " + results[0].department_name +
+                    " | price: " + results[0].price +
+                    " | inventory: " + results[0].qty
+                ]);
+
                 inquirer.prompt([{
                     type: 'list',
                     choices: ['yes', 'no'],
                     message: "Is this correct?",
                     name: 'yesNo'
                 }]).then(function(response) {
-
+                    functions.appendFile(response.choice);
                     if (response.yesNo === "yes") {
                         console.log("Created!");
                         setTimeout(function() { self.continueThis(connection) }, 1000);
@@ -129,6 +171,9 @@ var self = module.exports = {
             if (error) throw error;
             //console.log(results);
             console.log(columnify(results, { columns: ['item_id', 'product_name', 'department_name', 'price', 'qty'] }));
+
+            functions.appendFile(columnify(results, { columns: ['item_id', 'product_name', 'department_name', 'price', 'qty'] }));
+
             inquirer.prompt([{
                     type: 'input',
                     message: 'Input the ID of the product your would like to add inventory to: ',
@@ -140,13 +185,15 @@ var self = module.exports = {
                     name: 'qty'
                 }
             ]).then(function(response) {
+                functions.appendFile(response.choice);
                 self.updateBam(response, connection);
             }); //end then
         }); //end query
     }, //end method
 
     quit: function(connection) {
-        console.log("Goodbye...")
+        console.log("Goodbye...");
+        functions.writeFile("");
         connection.end();
     },
 
@@ -183,6 +230,13 @@ var self = module.exports = {
                     productObj.qty + " of " +
                     results[0].product_name + " (" +
                     results[0].department_name + ")");
+
+                functions.writeStream(["Update complete!", "You have added " +
+                    productObj.qty + " of " +
+                    results[0].product_name + " (" +
+                    results[0].department_name + ")"
+                ]);
+
                 setTimeout(function() { self.continueThis(connection) }, 1200);
             }); //end UPDATE query
         }); //end SELECT query
